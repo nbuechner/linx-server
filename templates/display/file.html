@@ -5,7 +5,6 @@
     <p class="center">You are requesting <a href="{{ sitepath }}{{ selifpath }}{{ filename }}">{{ filename }}</a>, <a href="{{ sitepath }}{{ selifpath }}{{ filename }}">click here</a> to download.</p>
 
 {% if files|length > 0 %}
-<img src={{ sitepath }}{{ filename }}/qr border=0>
 <p>Contents of the archive:</p>
 <ul>
 	{% for file in files %}
