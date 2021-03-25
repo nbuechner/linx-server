@@ -18,7 +18,7 @@
         {% block infomore %}{% endblock %}
         <span>{{ size }}</span> |
         <a href="{{ filename }}/torrent" download>torrent</a> |
-        <a href="{{ sitepath }}{{ selifpath }}{{ filename }}" download>get</a>
+        <a href="{{ sitepath }}{{ selifpath }}{{ filename }}" download>get</a> |
     </div>
 
     {% block infoleft %}{% endblock %}
@@ -28,9 +28,12 @@
 
     <div id='inner_content' {% block innercontentmore %}{% endblock %}>
         {% block main %}{% endblock %}
+    <br />
     </div>
-
+    <div align="left">
+	<hr class="dotted-line">
+        <br /><img src="{{ sitepath }}{{ filename }}/qr" border=0>
+    </div>
 </div>
-
 <script src="{{ sitepath }}static/js/clipboard.js"></script>
 {% endblock %}

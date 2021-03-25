@@ -25,6 +25,7 @@ type MetadataJSON struct {
 	Mimetype     string   `json:"mimetype"`
 	Size         int64    `json:"size"`
 	Expiry       int64    `json:"expiry"`
+	MaxDLs       int64    `json:"maxdls"`
 	SrcIp        string   `json:"srcip,omitempty"`
 	ArchiveFiles []string `json:"archive_files,omitempty"`
 }
@@ -64,6 +65,7 @@ func (b LocalfsBackend) Head(key string) (metadata backends.Metadata, err error)
 	metadata.Mimetype = mjson.Mimetype
 	metadata.ArchiveFiles = mjson.ArchiveFiles
 	metadata.Sha256sum = mjson.Sha256sum
+	metadata.MaxDLs = mjson.MaxDLs
 	metadata.Expiry = time.Unix(mjson.Expiry, 0)
 	metadata.Size = mjson.Size
 
@@ -108,6 +110,7 @@ func (b LocalfsBackend) writeMetadata(key string, metadata backends.Metadata) er
 		Expiry:       metadata.Expiry.Unix(),
 		Size:         metadata.Size,
 		SrcIp:        metadata.SrcIp,
+		MaxDLs:       metadata.MaxDLs,
 		
 	}
 
@@ -127,7 +130,7 @@ func (b LocalfsBackend) writeMetadata(key string, metadata backends.Metadata) er
 	return nil
 }
 
-func (b LocalfsBackend) Put(key string, r io.Reader, expiry time.Time, deleteKey, accessKey string, srcIp string) (m backends.Metadata, err error) {
+func (b LocalfsBackend) Put(key string, r io.Reader, expiry time.Time, deleteKey, accessKey string, srcIp string, maxDLs int64) (m backends.Metadata, err error) {
 	filePath := path.Join(b.filesPath, key)
 
 	dst, err := os.Create(filePath)
@@ -154,6 +157,7 @@ func (b LocalfsBackend) Put(key string, r io.Reader, expiry time.Time, deleteKey
 	dst.Seek(0, 0)
 
 	m.Expiry = expiry
+	m.MaxDLs = maxDLs
 	m.DeleteKey = deleteKey
 	m.AccessKey = accessKey
 	m.SrcIp = srcIp

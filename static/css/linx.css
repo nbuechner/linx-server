@@ -375,4 +375,9 @@ body {
     height: 800px;
     font-size: 13px;
 }
+
+hr.dotted-line {
+   border-top: 1px dotted black;
+}
+
 /* }}} */

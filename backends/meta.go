@@ -11,6 +11,7 @@ type Metadata struct {
 	Sha256sum    string
 	Mimetype     string
 	Size         int64
+	MaxDLs       int64
 	Expiry       time.Time
 	SrcIp        string
 	ArchiveFiles []string

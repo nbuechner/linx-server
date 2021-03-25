@@ -44,6 +44,9 @@
 			<p>Specify an expiration time (in seconds)<br />
 				<code>Linx-Expiry: 60</code></p>
 
+			<p>Specify a max number of file downloads (-1 = unlimited)<br />
+				<code>Linx-MaxDLs: 10</code></p>
+
 			<p>Get a json response<br />
 				<code>Accept: application/json</code></p>
 
@@ -56,6 +59,7 @@
 					“delete_key”: the (optionally generated) deletion key,<br />
 					“access_key”: the (optionally supplied) access key,<br />
 					“expiry”: the unix timestamp at which the file will expire (0 if never)<br />
+					“maxdls”: the remaining number of allowed file downloads (-1 is unlimited)<br />
 					“size”: the size in bytes of the file<br />
 					“mimetype”: the guessed mimetype of the file<br />
 					“sha256sum”: the sha256sum of the file,</p>

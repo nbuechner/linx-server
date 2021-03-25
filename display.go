@@ -39,6 +39,7 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 			"size":       strconv.FormatInt(metadata.Size, 10),
 			"mimetype":   metadata.Mimetype,
 			"sha256sum":  metadata.Sha256sum,
+			"maxdls":     strconv.FormatInt(metadata.MaxDLs, 10),
 		})
 		w.Write(js)
 		return
@@ -128,4 +129,6 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 	if err != nil {
 		oopsHandler(c, w, r, RespHTML, "")
 	}
+
+        metadata, err = setDownloadLimit(fileName)
 }

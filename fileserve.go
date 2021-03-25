@@ -66,6 +66,15 @@ func fileServeHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 			oopsHandler(c, w, r, RespAUTO, err.Error())
 			return
 		}
+
+		metadata, err = setDownloadLimit(fileName)
+		if err == backends.NotFoundErr {
+			notFoundHandler(c, w, r)
+			return
+		} else if err != nil {
+			oopsHandler(c, w, r, RespAUTO, "Corrupt metadata.")
+			return
+		}
 	}
 }
 
@@ -107,3 +116,25 @@ func checkFile(filename string) (metadata backends.Metadata, err error) {
 
 	return
 }
+
+func setDownloadLimit(filename string) (metadata backends.Metadata, err error) {
+	metadata, err = storageBackend.Head(filename)
+	if err != nil {
+		return
+	}
+
+	if  metadata.MaxDLs < 0 {
+		return
+	}
+
+	if  metadata.MaxDLs == 1 {
+		storageBackend.Delete(filename)
+		err = backends.NotFoundErr
+		return
+	}
+	metadata.MaxDLs = metadata.MaxDLs - 1
+        storageBackend.PutMetadata(filename, metadata)
+
+	return
+}
+

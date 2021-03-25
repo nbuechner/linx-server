@@ -15,5 +15,6 @@ require (
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
 	github.com/zeebo/bencode v1.0.0
 	github.com/zenazn/goji v0.9.0
+        github.com/boombuler/barcode v1.0.1
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 )

@@ -42,6 +42,7 @@ type UploadRequest struct {
 	randomBarename bool
 	accessKey      string // Empty string if not defined
 	srcIp          string // Empty string if not defined
+	maxdls	       int64  // max number of downloads, -1 = unlimited
 }
 
 // Metadata associated with a file as it would actually be stored
@@ -51,7 +52,7 @@ type Upload struct {
 }
 
 func uploadPostHandler(c web.C, w http.ResponseWriter, r *http.Request) {
-	if !strictReferrerCheck(r, getSiteURL(r), []string{"Linx-Delete-Key", "Linx-Expiry", "Linx-Randomize", "X-Requested-With"}) {
+	if !strictReferrerCheck(r, getSiteURL(r), []string{"Linx-Delete-Key", "Linx-Expiry", "Linx-MaxDLs", "Linx-Randomize", "X-Requested-With"}) {
 		badRequestHandler(c, w, r, RespAUTO, "")
 		return
 	}
@@ -87,8 +88,8 @@ func uploadPostHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 		upReq.size = int64(len(content))
 		upReq.filename = r.PostFormValue("filename") + "." + extension
 	}
-
 	upReq.expiry = parseExpiry(r.PostFormValue("expires"))
+	upReq.maxdls = parseMaxDLs(r.PostFormValue("maxdls"))
 	upReq.accessKey = r.PostFormValue(accessKeyParamName)
 	if r.PostFormValue("randomize") == "true" {
 		upReq.randomBarename = true
@@ -200,6 +201,7 @@ func uploadRemote(c web.C, w http.ResponseWriter, r *http.Request) {
 	upReq.accessKey = r.FormValue(accessKeyParamName)
 	upReq.randomBarename = r.FormValue("randomize") == "yes"
 	upReq.expiry = parseExpiry(r.FormValue("expiry"))
+	upReq.maxdls = parseMaxDLs(r.FormValue("maxdls"))
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
 	upload, err := processUpload(upReq)
 
@@ -232,6 +234,8 @@ func uploadHeaderProcess(r *http.Request, upReq *UploadRequest) {
 	}
 	upReq.deleteKey = r.Header.Get("Linx-Delete-Key")
 	upReq.accessKey = r.Header.Get(accessKeyHeaderName)
+	maxDLStr := r.Header.Get("Linx-MaxDLs")
+	upReq.maxdls = parseMaxDLs(maxDLStr)
 	// Get seconds until expiry. Non-integer responses never expire.
 	expStr := r.Header.Get("Linx-Expiry")
 	upReq.expiry = parseExpiry(expStr)
@@ -341,7 +345,7 @@ func processUpload(upReq UploadRequest) (upload Upload, err error) {
 	if Config.disableAccessKey == true {
 		upReq.accessKey = ""
 	}
-	upload.Metadata, err = storageBackend.Put(upload.Filename, io.MultiReader(bytes.NewReader(header), upReq.src), fileExpiry, upReq.deleteKey, upReq.accessKey, upReq.srcIp)
+	upload.Metadata, err = storageBackend.Put(upload.Filename, io.MultiReader(bytes.NewReader(header), upReq.src), fileExpiry, upReq.deleteKey, upReq.accessKey, upReq.srcIp, upReq.maxdls)
 	if err != nil {
 		return upload, err
 	}
@@ -361,6 +365,7 @@ func generateJSONresponse(upload Upload, r *http.Request) []byte {
 		"delete_key": upload.Metadata.DeleteKey,
 		"access_key": upload.Metadata.AccessKey,
 		"expiry":     strconv.FormatInt(upload.Metadata.Expiry.Unix(), 10),
+		"maxdls":     strconv.FormatInt(upload.Metadata.MaxDLs,10),
 		"size":       strconv.FormatInt(upload.Metadata.Size, 10),
 		"mimetype":   upload.Metadata.Mimetype,
 		"sha256sum":  upload.Metadata.Sha256sum,
@@ -416,5 +421,17 @@ func parseExpiry(expStr string) time.Duration {
 			}
 			return time.Duration(fileExpiry) * time.Second
 		}
+	}
+}
+
+func parseMaxDLs(maxDLsStr string) int64 {
+	if maxDLsStr == "" {
+		return -1
+	} else {
+		maxDLs, err := strconv.ParseInt(maxDLsStr, 10, 64)
+		if err != nil {
+			return -1;
+		}
+		return maxDLs
 	}
 }

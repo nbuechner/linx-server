@@ -20,12 +20,28 @@
                 </span>
 				{% endif %}
                 <select id="expiry" name="expires">
+                    <span class="hint--top hint--bounce" data-hint="The content will expire after this amount of time">
                     <option disabled>Expires:</option>
                     {% for expiry in expirylist %}
                     <option value="{{ expiry.Seconds }}" {% if forloop.Last %} selected{% endif %}>{{ expiry.Human }}
                     </option>
                     {% endfor %}
+		    </span>
                 </select>
+                <span class="hint--top hint--bounce" data-hint="Set the maximum number of allowed views">
+                <select id="maxdls" name="maxdls">
+                    <option disabled>Views:</option>
+                    <option value="-1" selected>unlimited</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+		</span>
                 <button type="submit">Paste</button>
             </div>
         </div>

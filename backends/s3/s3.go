@@ -126,6 +126,7 @@ func mapMetadata(m backends.Metadata) map[string]*string {
 		"Sha256sum": aws.String(m.Sha256sum),
 		"AccessKey": aws.String(m.AccessKey),
 		"SrcIp":     aws.String(m.SrcIp),
+		"MaxDLs":    aws.String(strconv.FormatInt(m.MaxDLs, 10)),
 	}
 }
 
@@ -148,6 +149,10 @@ func unmapMetadata(input map[string]*string) (m backends.Metadata, err error) {
 
 	m.Mimetype = aws.StringValue(input["Mimetype"])
 	m.Sha256sum = aws.StringValue(input["Sha256sum"])
+	m.MaxDLs,err = strconv.ParseInt(aws.StringValue(input["MaxDLs"]), 10, 64)
+        if err != nil {
+                return
+        }
 
 	if key, ok := input["AccessKey"]; ok {
 		m.AccessKey = aws.StringValue(key)
@@ -156,7 +161,7 @@ func unmapMetadata(input map[string]*string) (m backends.Metadata, err error) {
 	return
 }
 
-func (b S3Backend) Put(key string, r io.Reader, expiry time.Time, deleteKey, accessKey string, srcIp string) (m backends.Metadata, err error) {
+func (b S3Backend) Put(key string, r io.Reader, expiry time.Time, deleteKey, accessKey string, srcIp string, maxDLs int64) (m backends.Metadata, err error) {
 	tmpDst, err := ioutil.TempFile("", "linx-server-upload")
 	if err != nil {
 		return m, err
@@ -181,6 +186,7 @@ func (b S3Backend) Put(key string, r io.Reader, expiry time.Time, deleteKey, acc
 		return
 	}
 	m.Expiry = expiry
+	m.MaxDLs = maxDLs
 	m.DeleteKey = deleteKey
 	m.AccessKey = accessKey
 	// XXX: we may not be able to write this to AWS easily

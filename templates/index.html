@@ -18,12 +18,6 @@
         </div>
 
         <div id="choices">
-            <span class="hint--top hint--bounce"
-                data-hint="Replace the filename with random characters. The file extension is retained">
-                <label><input {% if forcerandom %} disabled {% endif %} name="randomize" id="randomize" type="checkbox"
-                        {% if (default_randomize && !( forcerandom)) || forcerandom %} checked {% endif %} /> Randomize filename</label>
-            </span>
-
             <div id="expiry">
                 <label>File expiry:
                     <select name="expires" id="expires">
@@ -34,6 +28,26 @@
                     </select>
                 </label>
             </div>
+            <div id="maxdls">
+                <label>Download limit:
+                    <select name="maxdls" id="maxdls">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="-1" selected>unlimited</option>
+                    </select>
+                </label>
+            </div>
+            <span class="hint--top hint--bounce"
+                data-hint="Replace the filename with random characters. The file extension is retained">
+                <label><input {% if forcerandom %} disabled {% endif %} name="randomize" id="randomize" type="checkbox"
+                        {% if (default_randomize && !( forcerandom)) || forcerandom %} checked {% endif %} /> Randomize filename</label>
+            </span>
 			{% if disable_access_key != true %}
             <div id="access_key">
                 <span class="hint--top hint--bounce"
@@ -56,3 +70,4 @@
 <script src="{{ sitepath }}static/js/dropzone.js"></script>
 <script src="{{ sitepath }}static/js/upload.js"></script>
 {% endblock %}
+
