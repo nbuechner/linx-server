@@ -3,7 +3,7 @@
 function build_binary_rice {
     name="$1"
 
-    for arch in amd64 386; do
+    for arch in amd64; do
         GOOS=darwin GOARCH=$arch go build -o "$name"osx-$arch
         rice append --exec "$name"osx-$arch
     done
@@ -37,7 +37,7 @@ function build_binary_rice {
 function build_binary {
     name="$1"
 
-    for arch in amd64 386; do
+    for arch in amd64; do
         GOOS=darwin GOARCH=$arch go build -o "$name"osx-$arch
     done
 
