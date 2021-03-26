@@ -23,7 +23,7 @@ func initializeCustomPages(customPagesDir string) {
 			continue
 		}
 
-		if strings.EqualFold(string(fileName[len(fileName)-3:len(fileName)]), ".md") {
+		if strings.EqualFold(string(fileName[len(fileName)-3]), ".md") {
 			contents, err := ioutil.ReadFile(path.Join(customPagesDir, fileName))
 			if err != nil {
 				log.Fatalf("Error reading file %s", fileName)

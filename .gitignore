@@ -37,3 +37,4 @@ meta/
 binaries/
 custom_pages/
 authfile
+build_git.sh

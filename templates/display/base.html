@@ -13,12 +13,18 @@
 
     <div class="info-actions">
         {% if expiry %}
-        <span>file expires in {{ expiry }}</span> |
+        <span>file expires in {{ expiry }} |
+        {% endif %}
+        {% if maxdls > 0 %}
+        {{ maxdls }} {% if maxdls == 1 %}download{% else %}downloads{% endif %} left |
         {% endif %}
         {% block infomore %}{% endblock %}
         <span>{{ size }}</span> |
         <a href="{{ filename }}/torrent" download>torrent</a> |
         <a href="{{ sitepath }}{{ selifpath }}{{ filename }}" download>get</a> |
+        <span class="hover_img" if=qrlink>
+            <a href="{{ sitepath }}{{ filename }}/qr">QR |<span id=qrcode><img src="{{ sitepath }}{{ filename }}/qr"/></span></a>
+        </span>
     </div>
 
     {% block infoleft %}{% endblock %}
@@ -30,10 +36,7 @@
         {% block main %}{% endblock %}
     <br />
     </div>
-    <div>
-	<hr class="dotted-line">
-        <br /><img src="{{ sitepath }}{{ filename }}/qr" border=0>
-    </div>
 </div>
 <script src="{{ sitepath }}static/js/clipboard.js"></script>
+
 {% endblock %}

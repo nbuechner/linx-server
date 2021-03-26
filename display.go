@@ -118,6 +118,7 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 		"filename":    fileName,
 		"size":        sizeHuman,
 		"expiry":      expiryHuman,
+		"maxdls":      metadata.MaxDLs,
 		"expirylist":  listExpirationTimes(),
 		"extra":       extra,
 		"forcerandom": Config.forceRandomFilename,
@@ -130,5 +131,5 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 		oopsHandler(c, w, r, RespHTML, "")
 	}
 
-        metadata, err = setDownloadLimit(fileName)
+	metadata, err = setDownloadLimit(fileName)
 }
