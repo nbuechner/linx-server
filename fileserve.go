@@ -60,20 +60,13 @@ func fileServeHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method != "HEAD" {
-
 		storageBackend.ServeFile(fileName, w, r)
 		if err != nil {
 			oopsHandler(c, w, r, RespAUTO, err.Error())
 			return
 		}
-
-		metadata, err = setDownloadLimit(fileName)
-		if err == backends.NotFoundErr {
-			notFoundHandler(c, w, r)
-			return
-		} else if err != nil {
-			oopsHandler(c, w, r, RespAUTO, "Corrupt metadata.")
-			return
+		if checkCookie(metadata.Sha256sum, w, r) == false {
+			setDownloadLimit(fileName)
 		}
 	}
 }
@@ -123,18 +116,25 @@ func setDownloadLimit(filename string) (metadata backends.Metadata, err error) {
 		return
 	}
 
-	if  metadata.MaxDLs < 0 {
+	if metadata.MaxDLs < 0 {
 		return
 	}
 
-	if  metadata.MaxDLs == 1 {
+	if metadata.MaxDLs == 0 {
 		storageBackend.Delete(filename)
 		err = backends.NotFoundErr
 		return
 	}
 	metadata.MaxDLs = metadata.MaxDLs - 1
-        storageBackend.PutMetadata(filename, metadata)
+	storageBackend.PutMetadata(filename, metadata)
 
 	return
 }
 
+func checkCookie(filehash string, w http.ResponseWriter, r *http.Request) bool {
+	cookie, err := r.Cookie("filehash")
+	if err == nil && cookie.Value == filehash {
+		return true
+	}
+	return false
+}

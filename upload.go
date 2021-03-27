@@ -22,6 +22,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/zenazn/goji/web"
 )
+
 var FileTooLargeError = errors.New("File too large.")
 var fileBlacklist = map[string]bool{
 	"favicon.ico":     true,
@@ -42,7 +43,7 @@ type UploadRequest struct {
 	randomBarename bool
 	accessKey      string // Empty string if not defined
 	srcIp          string // Empty string if not defined
-	maxdls	       int64  // max number of downloads, -1 = unlimited
+	maxdls         int64  // max number of downloads, -1 = unlimited
 }
 
 // Metadata associated with a file as it would actually be stored
@@ -95,7 +96,7 @@ func uploadPostHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 		upReq.randomBarename = true
 	}
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
-	upload, err := processUpload(upReq)
+	upload, err := processUpload(upReq, w)
 
 	if strings.EqualFold("application/json", r.Header.Get("Accept")) {
 		if err == FileTooLargeError || err == backends.FileEmptyError {
@@ -125,12 +126,12 @@ func uploadPostHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 func uploadPutHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 	upReq := UploadRequest{}
 	uploadHeaderProcess(r, &upReq)
-	
+
 	defer r.Body.Close()
 	upReq.filename = c.URLParams["name"]
 	upReq.src = http.MaxBytesReader(w, r.Body, Config.maxSize)
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
-	upload, err := processUpload(upReq)
+	upload, err := processUpload(upReq, w)
 
 	if strings.EqualFold("application/json", r.Header.Get("Accept")) {
 		if err == FileTooLargeError || err == backends.FileEmptyError {
@@ -194,7 +195,7 @@ func uploadRemote(c web.C, w http.ResponseWriter, r *http.Request) {
 		oopsHandler(c, w, r, RespAUTO, "Could not retrieve URL")
 		return
 	}
-	
+
 	upReq.filename = filepath.Base(grabUrl.Path)
 	upReq.src = http.MaxBytesReader(w, resp.Body, Config.maxSize)
 	upReq.deleteKey = r.FormValue("deletekey")
@@ -203,7 +204,7 @@ func uploadRemote(c web.C, w http.ResponseWriter, r *http.Request) {
 	upReq.expiry = parseExpiry(r.FormValue("expiry"))
 	upReq.maxdls = parseMaxDLs(r.FormValue("maxdls"))
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
-	upload, err := processUpload(upReq)
+	upload, err := processUpload(upReq, w)
 
 	if strings.EqualFold("application/json", r.Header.Get("Accept")) {
 		if err != nil {
@@ -241,7 +242,7 @@ func uploadHeaderProcess(r *http.Request, upReq *UploadRequest) {
 	upReq.expiry = parseExpiry(expStr)
 }
 
-func processUpload(upReq UploadRequest) (upload Upload, err error) {
+func processUpload(upReq UploadRequest, w http.ResponseWriter) (upload Upload, err error) {
 	if upReq.size > Config.maxSize {
 		return upload, FileTooLargeError
 	}
@@ -327,13 +328,13 @@ func processUpload(upReq UploadRequest) (upload Upload, err error) {
 	maxDurationTime := time.Duration(Config.maxDurationTime) * time.Second
 	if upReq.expiry == 0 {
 		if upReq.size > Config.maxDurationSize && maxDurationTime > 0 {
-				fileExpiry = time.Now().Add(maxDurationTime)
+			fileExpiry = time.Now().Add(maxDurationTime)
 		} else {
 			fileExpiry = expiry.NeverExpire
 		}
 	} else {
 		if upReq.size > Config.maxDurationSize && upReq.expiry > maxDurationTime {
-				fileExpiry = time.Now().Add(maxDurationTime)
+			fileExpiry = time.Now().Add(maxDurationTime)
 		} else {
 			fileExpiry = time.Now().Add(upReq.expiry)
 		}
@@ -349,6 +350,13 @@ func processUpload(upReq UploadRequest) (upload Upload, err error) {
 	if err != nil {
 		return upload, err
 	}
+	expire := time.Now().Add(time.Minute * 30)
+	cookie := http.Cookie{
+		Name:    "filehash",
+		Value:   upload.Metadata.Sha256sum,
+		Expires: expire,
+	}
+	http.SetCookie(w, &cookie)
 
 	return
 }
@@ -365,7 +373,7 @@ func generateJSONresponse(upload Upload, r *http.Request) []byte {
 		"delete_key": upload.Metadata.DeleteKey,
 		"access_key": upload.Metadata.AccessKey,
 		"expiry":     strconv.FormatInt(upload.Metadata.Expiry.Unix(), 10),
-		"maxdls":     strconv.FormatInt(upload.Metadata.MaxDLs,10),
+		"maxdls":     strconv.FormatInt(upload.Metadata.MaxDLs, 10),
 		"size":       strconv.FormatInt(upload.Metadata.Size, 10),
 		"mimetype":   upload.Metadata.Mimetype,
 		"sha256sum":  upload.Metadata.Sha256sum,
@@ -430,7 +438,7 @@ func parseMaxDLs(maxDLsStr string) int64 {
 	} else {
 		maxDLs, err := strconv.ParseInt(maxDLsStr, 10, 64)
 		if err != nil {
-			return -1;
+			return -1
 		}
 		return maxDLs
 	}

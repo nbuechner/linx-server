@@ -111,6 +111,13 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 	// Catch other files
 	if tpl == nil {
 		tpl = Templates["display/file.html"]
+	} else if checkCookie(metadata.Sha256sum, w, r) == false {
+		setDownloadLimit(fileName)
+	}
+
+	if metadata.MaxDLs == 0 {
+		notFoundHandler(c, w, r)
+		return
 	}
 
 	err := renderTemplate(tpl, pongo2.Context{
@@ -130,6 +137,4 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 	if err != nil {
 		oopsHandler(c, w, r, RespHTML, "")
 	}
-
-	metadata, err = setDownloadLimit(fileName)
 }
