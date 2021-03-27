@@ -123,7 +123,7 @@ func setDownloadLimit(filename string) (metadata backends.Metadata, err error) {
 		return
 	}
 
-	if metadata.MaxDLs == 1 {
+	if metadata.MaxDLs == 0 {
 		storageBackend.Delete(filename)
 		err = backends.NotFoundErr
 		return
