@@ -78,8 +78,8 @@ func staticHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 		notFoundHandler(c, w, r)
 		return
 	} else {
-		if path == "/favicon.ico" || path == "/favicon.gif" {
-			path = Config.sitePath + "static/images/favicon.gif"
+		if path == "/favicon.ico" || path == "/favicon.png" {
+			path = Config.sitePath + "static/images/favicon.png"
 		}
 
 		filePath := strings.TrimPrefix(path, Config.sitePath+"static/")

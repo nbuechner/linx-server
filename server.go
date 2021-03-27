@@ -222,7 +222,7 @@ func setup() *web.Mux {
 
 	mux.Get(Config.sitePath+"static/*", staticHandler)
 	mux.Get(Config.sitePath+"favicon.ico", staticHandler)
-	mux.Get(Config.sitePath+"favicon.gif", staticHandler)
+	mux.Get(Config.sitePath+"favicon.png", staticHandler)
 	mux.Get(Config.sitePath+"robots.txt", staticHandler)
 	mux.Get(nameRe, fileAccessHandler)
 	mux.Post(nameRe, fileAccessHandler)
