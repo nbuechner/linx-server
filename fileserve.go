@@ -11,7 +11,9 @@ import (
 	"github.com/andreimarcu/linx-server/backends"
 	"github.com/andreimarcu/linx-server/expiry"
 	"github.com/andreimarcu/linx-server/httputil"
+	"github.com/andreimarcu/linx-server/helpers"
 	"github.com/zenazn/goji/web"
+        "github.com/tomasen/realip"
 )
 
 func fileServeHandler(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -133,20 +135,23 @@ func setDownloadLimit(filename string) (metadata backends.Metadata, err error) {
 }
 
 func checkCookie(filehash string, w http.ResponseWriter, r *http.Request) bool {
+        value :=  helpers.GenerateHash(helpers.EncryptDecrypt(filehash,realip.FromRequest(r)))
 	cookie, err := r.Cookie("filehash")
-	if err == nil && cookie.Value == filehash {
+	if err == nil && cookie.Value == value {
 		return true
 	}
 	return false
 }
 
 func setCookie(filehash string, w http.ResponseWriter, r *http.Request) bool {
+        value :=  helpers.GenerateHash(helpers.EncryptDecrypt(filehash,realip.FromRequest(r)))
 	expire := time.Now().Add(time.Minute * 30)
 	cookie := http.Cookie{
 		Name:    "filehash",
-		Value:   filehash,
+		Value:   value,
 		Expires: expire,
 	}
 	http.SetCookie(w, &cookie)
 	return true
 }
+
