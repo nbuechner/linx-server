@@ -68,6 +68,7 @@ func fileServeHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 		if checkCookie(metadata.Sha256sum, w, r) == false {
 			setDownloadLimit(fileName)
 		}
+		setCookie(metadata.Sha256sum, w, r)
 	}
 }
 
@@ -77,8 +78,8 @@ func staticHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 		notFoundHandler(c, w, r)
 		return
 	} else {
-		if path == "/favicon.ico" {
-			path = Config.sitePath + "/static/images/favicon.gif"
+		if path == "/favicon.ico" || path == "/favicon.gif" {
+			path = Config.sitePath + "static/images/favicon.gif"
 		}
 
 		filePath := strings.TrimPrefix(path, Config.sitePath+"static/")
@@ -120,7 +121,7 @@ func setDownloadLimit(filename string) (metadata backends.Metadata, err error) {
 		return
 	}
 
-	if metadata.MaxDLs == 0 {
+	if metadata.MaxDLs == 1 {
 		storageBackend.Delete(filename)
 		err = backends.NotFoundErr
 		return
@@ -137,4 +138,15 @@ func checkCookie(filehash string, w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+func setCookie(filehash string, w http.ResponseWriter, r *http.Request) bool {
+	expire := time.Now().Add(time.Minute * 30)
+	cookie := http.Cookie{
+		Name:    "filehash",
+		Value:   filehash,
+		Expires: expire,
+	}
+	http.SetCookie(w, &cookie)
+	return true
 }

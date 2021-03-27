@@ -113,7 +113,9 @@ func fileDisplayHandler(c web.C, w http.ResponseWriter, r *http.Request, fileNam
 		tpl = Templates["display/file.html"]
 	} else if checkCookie(metadata.Sha256sum, w, r) == false {
 		setDownloadLimit(fileName)
+		metadata.MaxDLs--
 	}
+	setCookie(metadata.Sha256sum, w, r)
 
 	if metadata.MaxDLs == 0 {
 		notFoundHandler(c, w, r)

@@ -96,7 +96,7 @@ func uploadPostHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 		upReq.randomBarename = true
 	}
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
-	upload, err := processUpload(upReq, w)
+	upload, err := processUpload(upReq, w, r)
 
 	if strings.EqualFold("application/json", r.Header.Get("Accept")) {
 		if err == FileTooLargeError || err == backends.FileEmptyError {
@@ -131,7 +131,7 @@ func uploadPutHandler(c web.C, w http.ResponseWriter, r *http.Request) {
 	upReq.filename = c.URLParams["name"]
 	upReq.src = http.MaxBytesReader(w, r.Body, Config.maxSize)
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
-	upload, err := processUpload(upReq, w)
+	upload, err := processUpload(upReq, w, r)
 
 	if strings.EqualFold("application/json", r.Header.Get("Accept")) {
 		if err == FileTooLargeError || err == backends.FileEmptyError {
@@ -204,7 +204,7 @@ func uploadRemote(c web.C, w http.ResponseWriter, r *http.Request) {
 	upReq.expiry = parseExpiry(r.FormValue("expiry"))
 	upReq.maxdls = parseMaxDLs(r.FormValue("maxdls"))
 	upReq.srcIp = r.Header.Get("X-Forwarded-For")
-	upload, err := processUpload(upReq, w)
+	upload, err := processUpload(upReq, w, r)
 
 	if strings.EqualFold("application/json", r.Header.Get("Accept")) {
 		if err != nil {
@@ -242,7 +242,7 @@ func uploadHeaderProcess(r *http.Request, upReq *UploadRequest) {
 	upReq.expiry = parseExpiry(expStr)
 }
 
-func processUpload(upReq UploadRequest, w http.ResponseWriter) (upload Upload, err error) {
+func processUpload(upReq UploadRequest, w http.ResponseWriter, r *http.Request) (upload Upload, err error) {
 	if upReq.size > Config.maxSize {
 		return upload, FileTooLargeError
 	}
@@ -350,14 +350,6 @@ func processUpload(upReq UploadRequest, w http.ResponseWriter) (upload Upload, e
 	if err != nil {
 		return upload, err
 	}
-	expire := time.Now().Add(time.Minute * 30)
-	cookie := http.Cookie{
-		Name:    "filehash",
-		Value:   upload.Metadata.Sha256sum,
-		Expires: expire,
-	}
-	http.SetCookie(w, &cookie)
-
 	return
 }
 
