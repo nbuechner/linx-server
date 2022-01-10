@@ -22,7 +22,7 @@
                 <label>File expiry:
                     <select name="expires" id="expires">
                         {% for expiry in expirylist %}
-                        <option value="{{ expiry.Seconds }}" {% if forloop.Last %} selected{% endif %}>
+                        <option value="{{ expiry.Seconds }}" {% if (expiry.Seconds == expirydefault) %} selected {% endif %}>
                             {{ expiry.Human }}</option>
                         {% endfor %}
                     </select>

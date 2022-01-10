@@ -23,7 +23,7 @@
                     <span class="hint--top hint--bounce" data-hint="The content will expire after this amount of time">
                     <option disabled>Expires:</option>
                     {% for expiry in expirylist %}
-                    <option value="{{ expiry.Seconds }}" {% if forloop.Last %} selected{% endif %}>{{ expiry.Human }}
+                    <option value="{{ expiry.Seconds }}" {% if (expiry.Seconds == expirydefault) %} selected {% endif %}>{{ expiry.Human }}
                     </option>
                     {% endfor %}
 		    </span>
